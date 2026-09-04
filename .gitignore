@@ -1,0 +1,20 @@
+# Streamlit secrets — never commit credentials
+.streamlit/
+secrets.toml
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Manuscript drafts
+article*
+
+# Tooling
+.claude
+.DS_Store
