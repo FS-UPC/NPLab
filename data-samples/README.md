@@ -1,45 +1,55 @@
-# Sample dataset
+# Experimental dataset GOx / M10pH7 -- three measurement sessions, three separate ZIPs
 
-A small example dataset that exercises the whole **NPLab** workflow without
-needing real experimental data. It is the folder pre-filled in the app sidebar,
-so `streamlit run app.py` works out of the box.
+This material corresponds to Fig. 2 of the article. This folder contains **three independent ZIP files**, one per measurement session: `F61.zip`,
+`F62.zip`, and `F63D.zip`.
 
-Every file is a `.txt` emission scan in the instrument's native export format:
-a short text header (`Labels`, `Type`, `Start`, `Stop`, `Step`, …) followed by
-`wavelength,counts` rows. All spectra span **495–525 nm** in 1 nm steps, which
-covers the 508 nm fluorescence peak used by default.
+NPLab loads the calibration together with the rest of a session's files, and that
+calibration stays active (set) to process anything loaded afterwards. Since F61, F62,
+and F63D are three independent measurement sessions, each has its **own calibration
+curve**, fitted from its own CCN standards -- these curves are not equivalent to one
+another (different slope and intercept). If files from more than one session are loaded
+together in NPLab, the software will process one session's spectra using another
+session's calibration, producing incorrect concentration and adsorption-capacity values.
 
-## Contents
+For this reason, each session must be loaded **separately** into NPLab -- one ZIP at a
+time, each with its own calibration active -- never mixing files from two different ZIPs
+within the same processing session.
 
-| Prefix | Files | Tab | What it covers |
-|--------|------:|-----|----------------|
-| `BLK`  | 30 | Blank | 10 blank series (`BLK01`–`BLK10`) × 3 replicas — enough to pass the ≥ 10-file LOD/LOQ requirement |
-| `CCN`  | 18 | Calibration | 6 concentrations (10, 20, 25, 50, 100, 150 mg/L) × 3 replicas, matrix `M00` |
-| `DRF`  | 24 | Drift | Type-1 (`N00`) and Type-2 (`N50`), 4 session time-points × 3 replicas each |
-| `CTRL` |  8 | Control | Type-1 only (`N00`, matrix `M05`): adsorbents `BTO` and `MXB` at 2 g/L, conditions `C01` and `C02`, 2 replicas |
-| `AKN`  | 28 | Kinetics | N = 150 mg/L on `MXB` 1 g/L, 8 contact times (10–420 min), replicas per time-point |
-| `AIN`  | 20 | Isotherms | 6 initial concentrations (10, 25, 50, 100, 150, 200 mg/L) on `MXB` 1 g/L, replicas per concentration |
+## What each session represents
 
-## Suggested run-through
+- **F61** -- kinetics at medium/long contact times (t = 5-300 min), characterising the
+  adsorption equilibrium plateau.
+- **F62** -- kinetics at the shortest contact times (t = 1, 2 min), designed specifically
+  to determine how quickly equilibrium is reached. Also includes the Control (CTRLN)
+  files used to apply Co-correction (against the C000 control).
+- **F63D** -- the full isotherm (N = 5-400 mg/L, 9 levels), with its own calibration,
+  blanks, drift, and Co-correction control files.
 
-1. **Calibration** — load the `CCN*` files, keep the peak wavelength at 508 nm,
-   pick degree 1, and click **Set calibration**. Every other tab unlocks.
-2. **Blank** — load the `BLK*` files to obtain LOD and LOQ.
-3. **Drift** — the `DRFN00*` files give the Type-1 trend (with the LOD/LOQ lines
-   carried over from step 2); `DRFN50*` gives the Type-2 recovery.
-4. **Control** — the `CTRL*` files show the Type-1 bar chart comparing the two
-   adsorbents across conditions `C01` and `C02`.
-5. **Kinetics** — the `AKN*` files fit pseudo-1st and pseudo-2nd order models.
-6. **Isotherms** — the `AIN*` files fit Langmuir and Freundlich.
-7. **Download Results** — export the TXT report and the per-plot CSVs.
+## Contents of each ZIP
 
-## Not covered here
+- `F61.zip` (31 files): calibration (CCN x8), blanks (BLK x2), drift (DRF x7), kinetics
+  (AKN x14, t=5,15,60,120,180,240,300 min), and `kinetics_data_summary_F61.csv` with the
+  expected (t, q, q_std) values.
+- `F62.zip` (75 files): calibration (CCN x15), blanks (BLK x30), Co-correction controls
+  (CTRLN x9), drift (DRF x12), kinetics (AKN x6, t=1,2 min), and
+  `kinetics_data_summary_F62.csv`.
+- `F63D.zip` (109 files): calibration (CCN x23), blanks (BLK x26), Co-correction controls
+  (CTRLN x21), drift (DRF x12), isotherm (AIN x27, N=5-400 mg/L), and
+  `isotherm_data_summary_F63D.csv`.
 
-- **Type-2 control** files (`N > 0`) and the reserved **`C000`** Co-correction
-  sample, so the Co correction stays greyed out in the Kinetics and Isotherms
-  tabs with this dataset.
-- The **`M07`** odd/even replica-parity mode, which is triggered by a sub-folder
-  named `M07` in the data path.
-- The `.asc` / `.akn` headerless formats — all samples here are `.txt`.
+## How to use in NPLab
 
-See the [root README](../README.md) for the full file naming convention.
+1. Open NPLab and load **one of the three ZIPs** (e.g., `F61.zip`).
+2. Go to the **Calibration** tab and load/confirm that ZIP's `CCN*.txt` files -- this
+   sets that session's calibration.
+3. If the ZIP includes `CTRLN*.txt` files (F62 and F63D), go to the **Control** tab,
+   load them, and enable Co-correction against the C000 control.
+4. Go to the corresponding tab (**Kinetics** for F61/F62, **Isotherms** for F63D) and
+   load that same ZIP's `AKN*.txt` or `AIN*.txt` files.
+5. Check the results obtained against the reference CSV included in that ZIP.
+6. Close/clear the session before repeating the process with the next ZIP.
+
+Reprocessing each session separately should reproduce, within NPLab's own reported
+precision, the numbers quoted in the article: kinetics plateau 51.1+-0.9 mg/g (CV=1.8%),
+PFO/PSO R^2~=0 (Fig. 2a); Langmuir qmax=349.1 mg/g, KL=0.00216 L/mg, R^2=0.989,
+Freundlich 1/n=0.799, R^2=0.983 (Fig. 2b).
